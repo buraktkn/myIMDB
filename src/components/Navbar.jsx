@@ -2,15 +2,15 @@ import { Link } from "react-router-dom";
 
 export default function Navbar() {
   return (
-    <nav className="bg-slate-900 text-white p-4 shadow-lg">
-      <div className="container mx-auto flex justify-between items-center">
-        <Link to="/" className="text-2xl font-bold text-yellow-400">
+    <nav className="fixed top-0 left-0 w-full z-50 bg-white shadow-sm border-b border-slate-100">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+        <Link to="/" className="text-3xl font-bold tracking-tight text-slate-950 hover:text-yellow-600 transition duration-150">
           myIMDB
         </Link>
-        <div className="space-x-6">
-          <Link to="/search" className="hover:text-yellow-400 transition">Keşfet</Link>
-          <Link to="/library" className="hover:text-yellow-400 transition">Kütüphanem</Link>
-          <Link to="/login" className="bg-yellow-400 text-slate-900 px-4 py-2 rounded font-semibold hover:bg-yellow-300 transition">
+        <div className="hidden md:flex items-center gap-6">
+          <Link to="/search" className="text-sm font-medium text-slate-700 hover:text-yellow-600 transition">Keşfet</Link>
+          <Link to="/library" className="text-sm font-medium text-slate-700 hover:text-yellow-600 transition">Kütüphanem</Link>
+          <Link to="/login" className="px-5 py-2.5 rounded-full text-sm font-semibold bg-yellow-600 text-white shadow-md hover:bg-yellow-700 transition">
             Giriş Yap
           </Link>
         </div>
