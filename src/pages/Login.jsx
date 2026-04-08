@@ -23,7 +23,7 @@ export default function Login() {
     <div className="min-h-[70vh] flex items-center justify-center">
       <div className="bg-white p-10 rounded-2xl shadow-xl max-w-md w-full text-center space-y-8">
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-slate-900">CineLog'a Hoş Geldin</h1>
+          <h1 className="text-3xl font-bold text-slate-900">myIMDB'ye Hoş Geldin</h1>
           <p className="text-slate-500">
             Kişisel film ve dizi kütüphaneni oluşturmak için giriş yap.
           </p>

@@ -1,25 +1,24 @@
 import { useState, useEffect } from "react";
 import { searchContent } from "../services/tmdb";
+import { auth, db } from "../services/firebase";
+import { doc, setDoc } from "firebase/firestore";
 
 export default function Search() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // useEffect: 'query' her değiştiğinde (yani sen her harf yazdığında) tetiklenir
+  // Arama İşlemi (Debounce ile)
   useEffect(() => {
-    // Eğer arama kutusu boşsa sonuçları temizle ve bekle
     if (!query.trim()) {
       setResults([]);
       return;
     }
 
-    // Debounce: Kullanıcı yazmayı bıraktıktan 500ms sonra API'ye git
     const delayDebounceFn = setTimeout(async () => {
       setLoading(true);
       const data = await searchContent(query);
       
-      // Sadece afişi olan dizi ve filmleri filtrele
       const filteredData = data.filter(
         (item) => item.poster_path && item.media_type !== "person"
       );
@@ -28,20 +27,47 @@ export default function Search() {
       setLoading(false);
     }, 500);
 
-    // Cleanup: Kullanıcı 500ms dolmadan yeni bir harf yazarsa, önceki geri sayımı iptal et
     return () => clearTimeout(delayDebounceFn);
-  }, [query]); // Bu array [query] -> sadece arama kelimesi değişince çalış demek.
+  }, [query]);
+
+  // Listeye Ekleme Fonksiyonu
+  const handleAddToList = async (item) => {
+    const user = auth.currentUser;
+    if (!user) {
+      alert("Listeye film eklemek için önce giriş yapmalısın!");
+      return;
+    }
+
+    try {
+      const movieRef = doc(db, "users", user.uid, "library", item.id.toString());
+
+      await setDoc(movieRef, {
+        id: item.id,
+        title: item.title || item.name,
+        poster_path: item.poster_path,
+        media_type: item.media_type,
+        year: (item.release_date || item.first_air_date || "").substring(0, 4),
+        addedAt: new Date(),
+        status: "İzlenecek",
+        rating: 0,
+        personalNote: ""
+      });
+
+      alert(`"${item.title || item.name}" kütüphanene başarıyla eklendi!`);
+    } catch (error) {
+      console.error("Eklerken hata oluştu:", error);
+      alert("Film eklenirken bir sorun oluştu.");
+    }
+  };
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto">
-      {/* Üst Kısım */}
       <div className="text-center space-y-4">
         <h1 className="text-3xl font-bold">Ne İzlemek İstersin?</h1>
         <p className="opacity-70">
           Milyonlarca film ve dizi arasından arama yap, kütüphanene ekle.
         </p>
         
-        {/* Artık form yerine sadece bir div ve input var. Butonu kaldırdık! */}
         <div className="max-w-2xl mx-auto mt-6 relative">
           <input
             type="text"
@@ -50,7 +76,6 @@ export default function Search() {
             placeholder="Örn: Breaking Bad, Interstellar..."
             className="w-full px-6 py-4 rounded-xl border border-slate-300 bg-white shadow-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-yellow-500 placeholder-slate-400 text-lg transition-shadow"
           />
-          {/* Yükleniyor animasyonu metni (Sağ köşede tatlı bir detay) */}
           {loading && (
             <div className="absolute right-6 top-1/2 -translate-y-1/2 text-sm text-slate-400 font-medium">
               Aranıyor...
@@ -59,7 +84,6 @@ export default function Search() {
         </div>
       </div>
 
-      {/* Alt Kısım: Sonuçlar */}
       {results.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
           {results.map((item) => (
@@ -81,7 +105,11 @@ export default function Search() {
                     </span>
                   </div>
                 </div>
-                <button className="w-full mt-3 py-2.5 text-xs font-bold bg-slate-100 hover:bg-yellow-400 hover:text-slate-900 text-slate-800 rounded transition-colors duration-200">
+                {/* İşte hataya sebep olan ve artık kusursuz çalışan o buton */}
+                <button 
+                  onClick={() => handleAddToList(item)}
+                  className="w-full mt-3 py-2.5 text-xs font-bold bg-slate-100 hover:bg-yellow-400 hover:text-slate-900 text-slate-800 rounded transition-colors duration-200"
+                >
                   + Listeye Ekle
                 </button>
               </div>
@@ -90,7 +118,6 @@ export default function Search() {
         </div>
       )}
       
-      {/* Sonuç Yoksa */}
       {results.length === 0 && !loading && query && (
          <p className="text-center opacity-50 pt-10 text-lg">"{query}" için bir sonuç bulunamadı.</p>
       )}
